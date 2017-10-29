@@ -1,0 +1,258 @@
+---
+title: "Text Mining Infrastructure in R"
+author: "Ingo Feinerer , Kurt Hornik, David Meyer: Wirtschaftsuniversitaet Wien, notes by Bruno Fischer Colonimos"
+date: "26 octobre 2017"
+output: 
+    html_document:
+        number_sections: yes
+        toc: yes
+        toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r textfunctions, echo=FALSE}
+
+# context-detection functions
+# ============================
+
+# getcontext returns the doc conversion context
+# From Hadley's ggplot2 book:  Knowing conversion target 
+is_latex <- function() {
+        identical(knitr::opts_knit$get("rmarkdown.pandoc.to"), "latex")
+}
+
+# html same
+is_html <- function() {
+        identical(knitr::opts_knit$get("rmarkdown.pandoc.to"), "html")
+}
+
+getcontext <- function(){
+        if (is_latex()) {"latex" 
+                   } else if (is_html()) {
+                           "html"
+                   } else {"other"} 
+}
+
+# tries
+# message(getcontext())
+
+
+
+# text formatting functions
+# ===========================
+
+# centertext <- function(x){paste0("<center>", x, "</center>")}
+
+
+# list of data and functions for text formatting
+xtag <- list(explanation = "Tagging data list")
+
+# definitions of beginning and end strings
+xtag$html <- list(center = c(begin ="<center>", end = "</center>" ))
+xtag$latex <- list(center = c(begin = "{\\centering}", end = "}" ))
+xtag$other <- list(center = c(begin = "", end = "" ))
+
+
+xtag$definetag(tagname, listdefs){
+        listdef$html 
+}
+
+#  usage 
+xtag$definetag("center",
+               list(html = c(begin ="<center>", end = "</center>" ),
+                    latex =  c(begin = "{\\centering}", end = "}" ),
+                    other = c(begin = "", end = "" ))
+               )
+
+
+
+# xtag$fun <- function(tagtext, tagtype = 2) {
+#         yestag <- paste0("<", tagtext, ">")
+#         notag <- paste0("</", tagtext, ">")                         
+#         function(...) {
+#                 paste0(
+#                         yestag,
+#                         ...,
+#                         ifelse(tagtype == 2, notag, "")
+#                 )
+#         }
+# }
+
+
+xtag$getstrings <- function(tagname, context = getcontext() ){
+        xtag[[context]][[tagname]]
+}
+
+
+
+xtag$fun <- function(tagname, context = getcontext() ) {
+        begin <- ifelse(is_latex() , xtag$latex[[tagname]]["begin"], xtag$html[tagname]["begin"])
+        end <- ifelse(is_latex() , xtag$latex[[tagname]]["end"], xtag$html[tagname]["end"])                         
+        function(...) {
+                paste0(
+                        begin,
+                        ...,
+                        end
+                )
+        }
+}
+
+
+
+xtag$center <- xtag$fun("center")
+
+```
+
+
+------------------------------------------------------------
+
+Introduction
+============================================================
+
+Text mining = text as input information
+
+The benefit of text mining comes with the large amount of valuable information latent in texts which is not available in classical structured data formats.
+
+
+Classical applications in text mining 
+-------------------------------------
+
+* document clustering 
+    * Typical applications : grouping news articles or information service documents
+* document classification
+    * e-mail filters , automatic labeling of documents in business libraries
+
+For both, the idea is to transform the text into a structured format based on term frequencies and subsequently apply standard data mining techniques.
+
+Specic distance measures like the Cosine, play an important role
+
+More innovative text mining methods:
+------------------------------------
+* e.g., in linguistic stylometry (probability that a specic author wrote a specic text) 
+* in search engines for learning rankings of documents from search engine logs of user behavior
+
+* Latest developments in document exchange => valuable concepts for automatic handling of texts. The 'semantic web' propagates standardized formats for document exchange to enable agents to perform semantic operations on them. This is implemented by providing metadata and by annotating the text with tags. 
+* One key format is RDF This development oers great flexibility in document exchange. But with the growing
+popularity of XML based formats (e.g., RDF/XML as a common representation for RDF) tools need to be able to handle XML documents and metadata.
+
+
+Statistical contexts
+--------------------
+Statistical contexts for text mining applications in research and business intelligence:
+* latent semantic analysis techniques in bioinformatics
+* the usage of statistical methods for automatically investigating jurisdictions
+* plagiarism detection in universities and publishing houses, 
+* computer assisted cross-language information retrieval
+* adaptive spam lters learning via statistical inference.
+* help desk inquiries (Sakurai and Suyama 2005)
+* measuring customer preferences by analyzing qualitative interviews
+* automatic grading (Wu and Chen 2005)
+* fraud detection by investigating notfication of claims
+* parsing social network sites for specic patterns such as ideas for new products
+
+Almost every major statistical computing product offers text mining capabilities,
+these capabilites and features include:
+* Preprocess: data preparation, importing, cleaning and general preprocessing,
+* Associate: association analysis, that is fnding associations for a given term based on counting co-occurrence frequencies,
+* Cluster: clustering of similar documents into the same groups,
+* Summarize: summarization of important concepts in a text. Typically these are high-frequency terms,
+* Categorize: classication of texts into predfned categories, and
+* API: availability of application programming interfaces to extend the program with plug-ins.
+
+Commercial products:
+
+* Clearforest, a text-driven business intelligence solution, 
+* Copernic Summarizer, a summarizing software extracting key concepts and relevant sentences, 
+* dtSearch, a document
+search tool, 
+* Insightful Infact, a search and analysis text mining tool, 
+* Inxight, an integrated suite of tools for search, extraction, and analysis of text, *
+SPSS Clementine, a data and text mining workbench, 
+* SAS Text Miner, a suite of tools for knowledge discovery and knowledge
+extraction in texts, 
+* TEMIS, a tool set for text extraction, text clustering, and text catego-rization, 
+* WordStat, a product for computer assisted text analysis.
+
+Open-source
+
+* Weka suite, a collection of machine learning algorithms for data
+mining tasks also oering classication and clustering techniques with extension projects for text mining, like:
+* KEA for keyword extraction. 
+* GATE (Cunningham et al. 2002), Text Mining Infrastructure in R, 
+an established text mining framework with architecture for language processing, information extraction, ontology management and machine learning algorithms. (written in Java)
+* RapidMiner (formerly Yale (Mierswa et al. 2006)), a system for knowledge discovery and data mining, 
+* Pimiento (Adeva and Calvo 2006), a basic Java framework for text mining. 
+
+However, many existing open-source products tend to offer rather
+specialized solutions in the text mining context, such as:
+
+* Shogun (Sonnenburg et al. 2006), a toolbox for string kernels, or 
+* the Bow toolkit (McCallum 1996), a C library useful for statistical text analysis, language modeling and information retrieval. 
+
+In R
+* package ttda (Mueller 2006) provides some methods for textual data analysis.
+
+The `tm` package
+----------------
+text mining framework for R centered around the new package `tm` (Feinerer 2007b). This open source package, with a focus on extensibility based on generic functions and object-oriented inheritance, provides the basic infrastructure necessary to organize, transform, and analyze textual data.
+
+R has proven over the years to be one of the most versatile statistical computing environments available, and offers a battery of both standard and state-of-the-art methodology. However,nthe scope of these methods was often limited to "classical", structured input data formats (such as data frames in R). The `tm`  package provides a framework that allows researchers and practitioners to apply a multitude of existing methods to text data structures as well.
+
+In addition, advanced text mining methods beyond the scope of most today's commercial products, like string kernels or latent semantic analysis, can be made available via extension packages, such as `kernlab` (Karatzoglou et al. 2004, 2006) or lsa (Wild 2005), or via interfaces to established open source toolkits from the data/text mining field like Weka or OpenNLP (Bierner et al. 2007) from the natural languange processing community. So tm provides a framework for flexible integration of premier statistical methods from R, interfaces to well known open source text mining infrastructure and methods, and has a sophisticated modularized extension mechanism for text mining purposes.
+
+
+
+Conceptual process and framework
+============================================================
+
+text mining analysis = several challenging process steps
+
+A text mining analyst typically starts with a set of highly heterogeneous input texts. 
+
+* first step : to **import** these texts into R. 
+* Simultaneously it is important to **organize and structure** the texts 
+* second step : **tidying up**  the texts, including **preprocessing** the texts to obtain a convenient representa-tion for later analysis. This step might involve **text reformatting** (e.g., *whitespace removal*), *stopword removal*, or *stemming procedures*. 
+* Third, the analyst must be able to **transform** the preprocessed texts into structured formats to be actually computed with. For "classical" text mining tasks, this normally implies the creation of a so-called **term-document matrix**, probably the most common format to represent texts for computation. 
+Now the analyst can work and compute on texts with standard techniques from statistics and data mining, like clustering or classication methods
+
+A text mining framework must offer functionality for managing text documents, should abstract the process of document manipulation and ease the usage of heterogeneous text formats. 
+Thus there is a need for a conceptual entity similar to a database holding and managing text documents in a generic way: we call this entity a **text document collection** or **corpus**.
+
+Since text documents are present in different file formats and in different locations, like a compressed file on the Internet or a locally stored text file with additional annotations, there has to be an encapsulating mechanism providing standardized interfaces to access the document data. We subsume this functionality in so-called *sources* .
+Besides the actual textual data many modern file formats provide features to annotate text documents (e.g., XML with special tags), i.e., there is metadata available which further describes and enriches the textual content and might oer valuable insights into the document structure or additional concepts.
+
+Also, additional metadata is likely to be created during an analysis. Therefore the framework must be able to alleviate metadata usage in a convenient way, both on a document level (e.g., short summaries or descriptions of selected documents) and on a collection level (e.g., collection-wide classication tags).
+
+Alongside the data infrastructure for text documents the framework must provide tools and algorithms to efficiently work with the documents. That means the framework has to have functionality to perform common tasks, like whitespace removal, stemming or stopword deletion. We denote such functions operating on text document collections as *transformations*.
+
+Another important concept is filtering which basically involves applying predicate functions on collections to extract patterns of interest. A surprisingly challenging operation is the one of joining text document collections. Merging sets of documents is straightforward, but merging metadata intelligently needs a more sophisticated handling, since storing metadata from different sources in successive steps necessarily results in a hierarchical, tree-like structure. The
+challenge is to keep these joins and subsequent look-up operations efficient for large document
+collections.
+
+Realistic scenarios in text mining use at least several hundred text documents ranging up to several hundred thousands of documents. This means a compact storage of the documents in a document collection is relevant for appropriate RAM usage - a simple approach would hold all documents in memory once read in and bring down even fully RAM equipped systems shortly with document collections of several thousands text documents. However, simple database orientated mechanisms can already circumvent this situation, e.g., by holding only pointers or hashtables in memory instead of full documents.
+
+Text mining typically involves doing computations on texts to gain interesting information. The most common approach is to create a so-called term-document matrix holding frequences of distinct terms for each document. Another approach is to compute directly on character sequences as is done by string kernel methods. Thus the framework must allow export mecanisms for term-document matrices and provide interfaces to access the document corpora as plain character sequences.
+
+Basically, the framework and infrastructure supplied by `tm` aims at implementing the conceptual framework presented above.
+
+
+
+Data structures and algorithms
+============================================================
+
+Commercial text mining products (Davi et al. 2005) are typically built in monolithic structures regarding extensibility. 
+We decided to tackle this problem by implementing a framework for accessing text data structures in R. We concentrated on a middle ware consisting of several text mining classes that provide access to various texts. 
+On top of this basic layer we have a virtual application layer, where methods operate without explicitly knowing the details of internal text data structures. The text mining classes are written as abstract and generic as possible, so it is easy to add new methods on the application layer level. The framework uses the S4 (Chambers 1998) class system to capture an object oriented design. This design seems best capable of encapsulating several classes with internal data structures and oers typedmethods to the application layer.
+This modular structure enables tm to integrate existing functionality from other text miningtool kits. E.g., we interface with the Weka and OpenNLP tool kits, via RWeka (Hornik et al.2007)|and Snowball (Hornik 2007b) for its stemmers - and openNLP (Feinerer 2007a), respectively. In detail Weka gives us stemming and tokenization methods, whereas OpenNLP offers amongst others tokenization, sentence detection, and part of speech tagging (Bill 1995).
+We can plug in this functionality at various points in tm's infrastructure, e.g., for preprocessing via transformation methods (see Section 4), for generating term-document matrices (see Paragraph 3.1.4), or for custom functions when extending tm's methods (see Section 3.3)
+
+<center>
+![fig1](assets\fig1.JPG )
+</center>
+
+`r xtag$center('![fig1](assets\\fig1.JPG) "fig.1. Conceptual layers and packages" ')`
+
+Figure 1 shows both the conceptual layers of our text mining infrastructure and typical packages arranged in them. The system environment is made up of the R core and the XML (Temple Lang 2006) package for handling XML documents internally, the text mining framework consists of our new tm package with some help of Rstem (Temple Lang 2004) or Snowball for stemming, whereas some packages provide both infrastructure and applications, like word-net (Feinerer 2007c), kernlab with its string kernels, or the RWeka and openNLP interfaces. A typical application might be lsa which can use our middleware: the key data structure for la-tent semantic analysis (LSA Landauer et al. 1998; Deerwester et al. 1990) is a term-document matrix which can be easily exported from our tm framework. As default lsa provides its own (rather simple) routines for generating term-document matrices, so one can either use lsa natively or enhance it with tm for handling complex input formats, preprocessing, and text manipulations, e.g., as used by Feinerer and Wild (2007)
