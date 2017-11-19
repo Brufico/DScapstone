@@ -393,7 +393,8 @@ knitr::kable(df,row.names = TRUE)
 
 `TermDocMatrix`  provides such a term-document matrix for a given **Corpus** element. It has the slot **Data** of the formal class Matrix from package Matrix (Bates and Maechler 2007) to hold the frequencies in compressed sparse matrix format.
 
-Instead of using the term frequency (weightTf) directly, one can use dierent weightings. The slot **Weighting** of a **TermDocMatrix** provides this facility by calling a weighting function on the matrix elements. Available weighting schemes include the binary frequency (weightBin) method which eliminates multiple entries, or the inverse document frequency (weightTfIdf) weighting giving more importance to discriminative compared to irrelevant terms. Users can apply their own weighting schemes by passing over custom weighting functions to Weighting.
+
+Instead of using the term frequency (weightTf) directly, one can use different weightings. The slot **Weighting** of a **TermDocMatrix** provides this facility by calling a weighting function on the matrix elements. Available weighting schemes include the binary frequency (weightBin) method which eliminates multiple entries, or the inverse document frequency (weightTfIdf) weighting giving more importance to discriminative compared to irrelevant terms. Users can apply their own weighting schemes by passing over custom weighting functions to Weighting.
 
 Again, we can manually construct a term-document matrix, e.g., via
 
@@ -482,6 +483,7 @@ Corpus(DirSource(txt),
                         dbName = "/home/user/oviddb",
                         dbType = "DB1"))
 ```
+
 
 The loading and unloading of text documents and metadata of the text document collection is transparent to the user, i.e., fully automatic. Manipulations affecting R text document collections are written out to the database, i.e., we obtain persistent object semantics in contrast to R's common semantics.
 We have implemented both accessor and set functions for the slots in our classes such that slot information can easily be accessed and modied, e.g.
