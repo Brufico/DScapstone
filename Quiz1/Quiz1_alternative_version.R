@@ -225,13 +225,20 @@ lovehateratio(file.path(datadir,"en_US.twitter.txt"))
 local({
         fname <- "en_US.twitter.txt"
         lines <- readLines(file.path(datadir, fname))
-        list(
-                # anythingpos = grep(pattern = "NOMATCH biostat", x = lines, value = FALSE),
-                # anything = grep(pattern = "NOMATCH biostat", x = lines, value = TRUE),
-                anythingelse = sum(grepl(pattern = "NOMATCH biostat", lines )),
-                Tweetbio = grep(pattern = "biostat", x = lines, value = TRUE),
-                Howmanychess = sum(grepl(pattern = "A computer once beat me at chess, but it was no match for me at kickboxing",
-                                         lines ))
+        anything <-  ""
+        anything  <-  grep(pattern = "NOMATCH biostat", x = lines, value = TRUE)
+        # str(anything),
+        # is.null(anything),
+        # anythingelse = sum(grepl(pattern = "NOMATCH biostat", lines )),
+        Tweetbio <-  grep(pattern = "biostat", x = lines, value = TRUE)
+        Howmanychess <-  sum(grepl(pattern = "A computer once beat me at chess, but it was no match for me at kickboxing",
+                                   lines ))
+        
+        list( anything = anything,
+              l_anything = length(anything),
+              Tweetbio = Tweetbio,
+              Howmanychess = Howmanychess
+              # anythingpos = grep(pattern = "NOMATCH biostat", x = lines, value = FALSE)
         )
 })
 
@@ -240,6 +247,8 @@ local({
 # new
 local({
         fname <- "en_US.twitter.txt"
+        chesspattern <- "A computer once beat me at chess, but it was no match for me at kickboxing"
+        
         listres <- read_by_lines(filename = file.path(datadir, fname), 
                                  block_process = function(block_text, 
                                                           block_fields = c("Value"), 
@@ -247,24 +256,27 @@ local({
                                                           block_length, 
                                                           block_index ) {
                                          biostat_match <- grep(pattern = "biostat", x =  block_text, value = TRUE)
-                                         Howmanychess <- sum(grepl(pattern = "A computer once beat me at chess, but it was no match for me at kickboxing",
+                                         Howmanychess <- sum(grepl(pattern = chesspattern,
                                                                    block_text ))
                                          # return
-                                         list (biostat_match, Howmanychess)
+                                         list(ifelse(length(biostat_match) != 0, biostat_match, "NO_MATCH"), # test necessary
+                                              Howmanychess)
                                  },
                                  combine_results = function(previous_results, new_results){
-                                         list(ifelse(previous_results[[1]] == character(0), 
-                                                      new_results[[1]], previous_results[[1]]), #something doesn't work here
+                                         # if(length(new_results[[1]])  != 0) {message("MATCH FOUND")}
+                                         list(ifelse(previous_results[[1]] == "NO_MATCH", 
+                                                      new_results[[1]], previous_results[[1]]), 
                                                previous_results[[2]] + new_results[[2]])
                                  },
-                                 initial_results = list(character(0),0),
-                                 block_size = 1000, # read block_size lines at a time
+                                 initial_results = list("NO_MATCH", 0),
+                                 block_size = 10000, # read block_size lines at a time
                                  read_header = FALSE # get header first ? (from line 1)
         )
+        names(listres) <- c("Tweetbio", "Howmanychess")
         listres
 })
 
-
+# correct answer
 # $Tweetbio
 # [1] "i know how you feel.. i have biostats on tuesday and i have yet to study =/"
 # 
