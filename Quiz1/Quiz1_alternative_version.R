@@ -113,17 +113,6 @@ rm(read_by_lines_test)
 # --------------
 
 #  summarising function
-# sumfile <- function(fname) {
-#         # read lines
-#         lines <- readLines(file.path(datadir, fname))
-#         # Counting lines
-#         nlines <- length(lines)
-#         
-#         maxwidthline <- max(sapply(lines,
-#                    function(x) nchar(x)
-#         ))
-#         list(Filename = fname, Lines = nlines, Linewidth = maxwidthline)
-# }
 
 
 
